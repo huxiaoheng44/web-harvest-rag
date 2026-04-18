@@ -141,16 +141,6 @@ You can also edit `config/sources.json` by hand. Each entry can be a plain URL s
 
 See `config/sources.example.json` for reference.
 
-## Example prompts
-
-```text
-What is MULTIVAC Smart Services?
-What is MULTIVAC Line Control used for?
-Summarize the Production 4.0 page in 3 bullet points.
-Compare Smart Services and Line Control.
-Which sources mention productivity or efficiency?
-Summarize the PEAQ brochure in 5 bullet points.
-```
 
 ## Example use cases
 
