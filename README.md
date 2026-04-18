@@ -73,7 +73,15 @@ npm install
 
 ### 2. Configure environment variables
 
-Copy `.env.example` to `.env` and set:
+There are two ways to set the required variables:
+
+**Option A — In-app settings (local development only)**
+
+Start the app and open the settings panel (gear icon in the sidebar). You can enter all variables directly in the UI. Changes are saved to your local `.env` file. Sensitive values like API keys will show a warning before saving — this flow is intended only for local testing and should not be used on any internet-facing deployment.
+
+**Option B — Edit `.env` directly**
+
+Copy `.env.example` to `.env` and fill in the values before starting the app. This is the recommended approach for any shared or production environment.
 
 ```env
 OPENAI_API_KEY=

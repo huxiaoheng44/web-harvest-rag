@@ -504,9 +504,8 @@ export function ChatApp() {
 
       <EnvSettingsModal
         isOpen={envModalOpen}
-        allowLater
         title="Environment variables"
-        description="Update the local OpenAI and Supabase variables used by the app. You can also add custom entries for your own pipeline or integrations."
+        description="Update the local OpenAI and Supabase variables used by the app."
         onClose={() => setEnvModalOpen(false)}
       />
     </>
