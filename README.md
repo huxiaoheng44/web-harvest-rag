@@ -2,25 +2,29 @@
 
 `Web Harvest Chatbot` is a config-driven starter for building a retrieval-augmented chatbot from websites and PDFs.
 
-It is designed for the workflow you were building manually before:
+Paste a list of URLs into the web UI, click **Save and build**, and the app automatically scrapes, chunks, embeds, and indexes the content into Supabase pgvector — no command line required.
 
-1. Define source URLs
-2. Crawl HTML pages
-3. Extract text from PDFs
-4. Build a merged knowledge base JSON
-5. Chunk and embed into Supabase pgvector
-6. Chat with the indexed corpus from a Next.js UI
+The full workflow:
+
+1. Paste URLs in the web UI (or edit `config/sources.json` directly)
+2. The app extracts and deduplicates all links from the pasted text
+3. Scrapes HTML pages and extracts text from PDFs
+4. Builds a merged knowledge base
+5. Chunks and embeds content into Supabase pgvector
+6. Chat with the indexed corpus from the same UI
 
 ## What it includes
 
-- Config-driven source ingestion through `config/sources.json`
+- **Web UI source management**: paste raw text containing URLs, the app extracts and deduplicates links automatically
+- **One-click ingestion**: "Save and build" triggers the full pipeline in the background; build status is shown live in the sidebar
+- **Automatic database sync**: removing a source from the UI also deletes its chunks from the vector database
+- Config-driven source list in `config/sources.json` (synced automatically with the UI)
 - HTML scraping and PDF text extraction in `scraper.py`
 - Vector indexing in `build_index.py`
 - One-command ingestion runner in `pipeline.py`
 - Supabase SQL for vector search and chat persistence
 - Next.js frontend with anonymous Supabase auth
 - Shared branding config in `config/project.json`
-- In-app source management with background build status
 
 ## UI example
 
@@ -88,23 +92,7 @@ CHUNK_CHARS=1200
 CHUNK_OVERLAP_CHARS=150
 ```
 
-### 3. Configure your sources
-
-You can either edit `config/sources.json` directly or add sources from the web UI.
-
-The app accepts plain URL lists or mixed pasted text containing URLs.
-
-Each source supports:
-
-- `id`
-- `title`
-- `url`
-- `category`
-- `type` as `html` or `pdf`
-
-You can start from `config/sources.example.json`.
-
-### 4. Initialize Supabase
+### 3. Initialize Supabase
 
 Run these scripts in Supabase SQL Editor:
 
@@ -115,30 +103,43 @@ sql/web_schema.sql
 
 Also enable anonymous auth in Supabase.
 
-### 5. Run ingestion
-
-```bash
-python pipeline.py
-```
-
-Or trigger a rebuild directly from the web UI after adding sources.
-
-Useful variants:
-
-```bash
-python scraper.py --test
-python scraper.py --limit 10
-python build_index.py --reset
-python pipeline.py --test --reset-index
-```
-
-### 6. Start the web app
+### 4. Start the web app
 
 ```bash
 npm run dev
 ```
 
 Open `http://localhost:3000` and start an anonymous session.
+
+### 5. Add sources and build
+
+1. Click **Add sources** in the sidebar
+2. Paste any text containing URLs (plain list, email, notes — the app extracts all links)
+3. Click **Save and build**
+
+The app scrapes the URLs, chunks the content, generates embeddings, and indexes everything into Supabase. Build progress is shown live in the sidebar. When the build finishes, the knowledge base is ready to query.
+
+To remove a source, click the **x** next to it in the sidebar. Its chunks are deleted from the database immediately.
+
+#### Advanced: manual ingestion from the command line
+
+```bash
+python pipeline.py
+python scraper.py --test
+python scraper.py --limit 10
+python build_index.py --reset
+python pipeline.py --test --reset-index
+```
+
+#### Advanced: edit sources directly
+
+You can also edit `config/sources.json` by hand. Each entry can be a plain URL string or an object:
+
+```json
+{ "url": "https://example.com", "title": "Example", "type": "html", "category": "website" }
+```
+
+See `config/sources.example.json` for reference.
 
 ## Example prompts
 
