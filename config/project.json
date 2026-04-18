@@ -1,10 +1,10 @@
 {
-  "appName": "Web Harvest RAG",
-  "assistantName": "Web Harvest AI",
+  "appName": "Web Harvest Chatbot",
+  "assistantName": "Web Harvest Chatbot",
   "brandMark": "W",
-  "description": "Config-driven RAG starter for crawling websites, extracting PDFs, indexing into Supabase, and chatting from a Next.js UI.",
-  "knowledgeBaseLabel": "indexed website and PDF corpus",
-  "emptyStateTitle": "Ask the knowledge base",
-  "emptyStateDescription": "Query the pages and PDFs you crawled, indexed, and stored in Supabase.",
-  "chatInputPlaceholder": "Ask about the indexed website, documentation, or PDFs..."
+  "description": "Config-driven chatbot for crawling websites, extracting PDFs, indexing them into Supabase, and answering from a Next.js UI.",
+  "knowledgeBaseLabel": "website and PDF sources",
+  "emptyStateTitle": "Ask your harvested content",
+  "emptyStateDescription": "Add source URLs, build the knowledge base, and ask grounded questions about the indexed content.",
+  "chatInputPlaceholder": "Ask about the indexed websites or PDFs..."
 }

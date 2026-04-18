@@ -29,6 +29,8 @@ __pycache__/
 # Generated crawl artifacts
 data/pages/
 data/knowledge_base.json
+data/build-status.json
+data/build.log
 
 # OS / editor files
 .DS_Store

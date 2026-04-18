@@ -1,15 +1,29 @@
 import { NextResponse } from "next/server";
 
 import { getAuthenticatedServerContext } from "@/lib/supabase/request-user";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const { supabase, user } = await getAuthenticatedServerContext();
+  const { user } = await getAuthenticatedServerContext();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  const { data: conversation, error: conversationError } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (conversationError || !conversation) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
 
   const { data, error } = await supabase

@@ -1,6 +1,6 @@
-# Web Harvest RAG
+# Web Harvest Chatbot
 
-`Web Harvest RAG` is a config-driven starter for building a retrieval-augmented chatbot from websites and PDFs.
+`Web Harvest Chatbot` is a config-driven starter for building a retrieval-augmented chatbot from websites and PDFs.
 
 It is designed for the workflow you were building manually before:
 
@@ -20,6 +20,17 @@ It is designed for the workflow you were building manually before:
 - Supabase SQL for vector search and chat persistence
 - Next.js frontend with anonymous Supabase auth
 - Shared branding config in `config/project.json`
+- In-app source management with background build status
+
+## UI example
+
+### Add sources
+
+![Add sources modal](readme-source/add-source.png)
+
+### Chat interface
+
+![Chat interface](readme-source/chat-example.png)
 
 ## Project structure
 
@@ -29,6 +40,7 @@ It is designed for the workflow you were building manually before:
 - `scraper.py`: crawls pages and PDFs into `data/`
 - `build_index.py`: chunks content and writes embeddings to Supabase
 - `pipeline.py`: runs scrape + index in sequence
+- `scripts/run-pipeline-background.mjs`: runs rebuilds in the background
 - `sql/`: database schema and RPC definitions
 - `app/`, `components/`, `lib/`: web app and API routes
 - `docs/setup/SETUP.md`: detailed setup instructions
@@ -78,7 +90,9 @@ CHUNK_OVERLAP_CHARS=150
 
 ### 3. Configure your sources
 
-Edit `config/sources.json`.
+You can either edit `config/sources.json` directly or add sources from the web UI.
+
+The app accepts plain URL lists or mixed pasted text containing URLs.
 
 Each source supports:
 
@@ -107,6 +121,8 @@ Also enable anonymous auth in Supabase.
 python pipeline.py
 ```
 
+Or trigger a rebuild directly from the web UI after adding sources.
+
 Useful variants:
 
 ```bash
@@ -124,6 +140,17 @@ npm run dev
 
 Open `http://localhost:3000` and start an anonymous session.
 
+## Example prompts
+
+```text
+What is MULTIVAC Smart Services?
+What is MULTIVAC Line Control used for?
+Summarize the Production 4.0 page in 3 bullet points.
+Compare Smart Services and Line Control.
+Which sources mention productivity or efficiency?
+Summarize the PEAQ brochure in 5 bullet points.
+```
+
 ## Example use cases
 
 - Company knowledge chatbot from marketing pages and brochures
@@ -134,6 +161,7 @@ Open `http://localhost:3000` and start an anonymous session.
 ## Notes
 
 - `data/pages/` and `data/knowledge_base.json` are generated artifacts and ignored by git.
+- `data/build-status.json` and `data/build.log` are local runtime artifacts and ignored by git.
 - The vector search uses `match_chunks()` from `sql/web_schema.sql`.
 - The app stores chat history in Supabase conversations and messages tables.
 - The current scraper is intentionally simple and easy to adapt, not a full distributed crawler.

@@ -10,12 +10,14 @@ Usage:
 """
 
 import argparse
+import hashlib
 import io
 import json
 import re
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 import markdownify
 import pdfplumber
@@ -61,21 +63,63 @@ def load_sources() -> tuple[str, list[dict]]:
     sources = payload.get("sources", [])
     normalized = []
 
-    for source in sources:
-        source_type = source.get("type") or (
-            "pdf" if source.get("url", "").lower().endswith(".pdf") else "html"
-        )
+    for index, source in enumerate(sources):
+        if isinstance(source, str):
+            url = source
+            source_id = make_source_id(url, index)
+            title = make_source_title(url)
+            category = infer_category(url)
+            source_type = "auto"
+        else:
+            url = source["url"]
+            source_id = source.get("id") or make_source_id(url, index)
+            title = source.get("title") or make_source_title(url)
+            category = source.get("category") or infer_category(url)
+            source_type = source.get("type") or "auto"
+
         normalized.append(
             {
-                "id": source["id"],
-                "title": source.get("title", source["id"]),
-                "url": source["url"],
-                "category": source.get("category", "general"),
+                "id": source_id,
+                "title": title,
+                "url": url,
+                "category": category,
                 "type": source_type,
             }
         )
 
     return name, normalized
+
+
+def slugify(value: str) -> str:
+    return re.sub(r"^-+|-+$", "", re.sub(r"[^a-z0-9]+", "-", value.lower()))
+
+
+def make_source_id(url: str, index: int) -> str:
+    parsed = urlparse(url)
+    hostname = parsed.netloc.replace("www.", "")
+    path_part = parsed.path.strip("/").replace("/", "-")
+    base = slugify("-".join(part for part in [hostname, path_part] if part)) or f"source-{index + 1}"
+    digest = hashlib.sha1(url.encode("utf-8")).hexdigest()[:8]
+    trimmed = base[:48] if len(base) > 48 else base
+    return f"{trimmed}-{digest}"
+
+
+def make_source_title(url: str) -> str:
+    parsed = urlparse(url)
+    last_segment = parsed.path.strip("/").split("/")[-1] if parsed.path.strip("/") else parsed.netloc
+    return re.sub(r"\s+", " ", re.sub(r"[-_]+", " ", last_segment.replace(".pdf", ""))).strip() or url
+
+
+def infer_category(url: str) -> str:
+    return "downloads" if infer_type_from_url(url) == "pdf" else "website"
+
+
+def infer_type_from_url(url: str) -> str:
+    return "pdf" if re.search(r"\.pdf($|[?#])|coredownload\.pdf|inline\.pdf", url, re.I) else "html"
+
+
+def utc_timestamp() -> str:
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def clean_html(html: str) -> BeautifulSoup:
@@ -139,6 +183,16 @@ def fetch_url(url: str, timeout: int = 20) -> requests.Response | None:
         return None
 
 
+def detect_response_type(meta: dict, response: requests.Response) -> str:
+    if meta.get("type") in ["html", "pdf"]:
+        return meta["type"]
+
+    content_type = response.headers.get("Content-Type", "").lower()
+    if "pdf" in content_type or infer_type_from_url(response.url) == "pdf":
+        return "pdf"
+    return "html"
+
+
 def scrape_html(meta: dict) -> dict:
     print(f"Fetching page [{meta['id']}] {meta['url']}")
     response = fetch_url(meta["url"])
@@ -156,7 +210,7 @@ def scrape_html(meta: dict) -> dict:
         **meta,
         "status": "ok",
         "detected_title": detected_title,
-        "scraped_at": datetime.utcnow().isoformat() + "Z",
+        "scraped_at": utc_timestamp(),
         "final_url": response.url,
         "content_markdown": content_markdown,
         "content_plain": content_plain,
@@ -179,7 +233,7 @@ def scrape_pdf(meta: dict) -> dict:
         return {
             **meta,
             "status": "warn_not_pdf",
-            "scraped_at": datetime.utcnow().isoformat() + "Z",
+            "scraped_at": utc_timestamp(),
             "content_markdown": text[:5000],
             "content_plain": text[:5000],
             "char_count": len(text),
@@ -194,7 +248,7 @@ def scrape_pdf(meta: dict) -> dict:
     result = {
         **meta,
         "status": "ok",
-        "scraped_at": datetime.utcnow().isoformat() + "Z",
+        "scraped_at": utc_timestamp(),
         "final_url": response.url,
         "content_markdown": text,
         "content_plain": text,
@@ -202,6 +256,61 @@ def scrape_pdf(meta: dict) -> dict:
     }
     print(f"  OK {len(text):,} chars extracted from PDF")
     return result
+
+
+def scrape_html_response(meta: dict, response: requests.Response) -> dict:
+    soup = clean_html(response.text)
+    detected_title = extract_page_title(soup)
+    main_html = extract_main_content(soup)
+    content_markdown = html_to_markdown(main_html)
+    content_plain = BeautifulSoup(main_html, "lxml").get_text(separator=" ", strip=True)
+    content_plain = re.sub(r"\s+", " ", content_plain).strip()
+
+    print(f"Fetching page [{meta['id']}] {meta['url']}")
+    print(f"  OK {len(content_plain):,} chars extracted")
+    return {
+        **meta,
+        "type": "html",
+        "status": "ok",
+        "detected_title": detected_title,
+        "scraped_at": utc_timestamp(),
+        "final_url": response.url,
+        "content_markdown": content_markdown,
+        "content_plain": content_plain,
+        "char_count": len(content_plain),
+    }
+
+
+def scrape_pdf_response(meta: dict, response: requests.Response) -> dict:
+    print(f"Fetching PDF  [{meta['id']}] {meta['url']}")
+    try:
+        text = extract_pdf_text(response.content)
+    except Exception as exc:
+        print(f"  [ERROR] PDF parse failed: {exc}")
+        return {**meta, "type": "pdf", "status": "error_pdf_parse", "content_markdown": "", "content_plain": ""}
+
+    print(f"  OK {len(text):,} chars extracted from PDF")
+    return {
+        **meta,
+        "type": "pdf",
+        "status": "ok",
+        "scraped_at": utc_timestamp(),
+        "final_url": response.url,
+        "content_markdown": text,
+        "content_plain": text,
+        "char_count": len(text),
+    }
+
+
+def scrape_source(meta: dict) -> dict:
+    response = fetch_url(meta["url"])
+    if response is None:
+        return {**meta, "status": "error", "content_markdown": "", "content_plain": ""}
+
+    detected_type = detect_response_type(meta, response)
+    if detected_type == "pdf":
+        return scrape_pdf_response(meta, response)
+    return scrape_html_response(meta, response)
 
 
 def save(record: dict):
@@ -242,7 +351,7 @@ def main():
 
     records = []
     for index, source in enumerate(sources):
-        record = scrape_pdf(source) if source["type"] == "pdf" else scrape_html(source)
+        record = scrape_source(source)
         save(record)
         records.append(record)
         if index < len(sources) - 1:

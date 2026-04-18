@@ -28,3 +28,19 @@ export type ProfileSummary = {
   name: string;
   avatarUrl: string;
 };
+
+export type ManagedSource = {
+  id: string;
+  title: string;
+  url: string;
+  type: "html" | "pdf";
+  category: string;
+};
+
+export type BuildStatus = {
+  state: "idle" | "running" | "success" | "error";
+  summary: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  logPath: string | null;
+};

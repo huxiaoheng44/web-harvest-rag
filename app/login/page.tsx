@@ -18,10 +18,10 @@ export default async function LoginPage() {
     <main className="login-shell">
       <section className="login-panel">
         <p className="eyebrow">{appConfig.appName}</p>
-        <h1>Chat with your indexed website and PDF corpus</h1>
+        <h1>Turn websites and PDFs into a searchable chatbot</h1>
         <p className="login-copy">
-          Start an anonymous session, search your indexed content, and keep conversation history
-          in Supabase for follow-up questions.
+          Start an anonymous session, add source URLs, build the knowledge base, and chat with the
+          indexed content from one UI.
         </p>
         <LoginButton />
       </section>

@@ -10,9 +10,11 @@ Usage:
 
 import argparse
 import subprocess
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
+PYTHON = sys.executable or "python3"
 
 
 def run(command: list[str]):
@@ -28,12 +30,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not args.skip_scrape:
-        scrape_command = ["python", "scraper.py"]
+        scrape_command = [PYTHON, "scraper.py"]
         if args.test:
             scrape_command.append("--test")
         run(scrape_command)
 
-    index_command = ["python", "build_index.py"]
+    index_command = [PYTHON, "build_index.py"]
     if args.reset_index:
         index_command.append("--reset")
     run(index_command)
