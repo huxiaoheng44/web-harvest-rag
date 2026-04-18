@@ -1,0 +1,8 @@
+beautifulsoup4
+lxml
+markdownify
+openai
+pdfplumber
+python-dotenv
+requests
+supabase

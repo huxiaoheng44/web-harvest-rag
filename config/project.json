@@ -1,0 +1,10 @@
+{
+  "appName": "Web Harvest RAG",
+  "assistantName": "Web Harvest AI",
+  "brandMark": "W",
+  "description": "Config-driven RAG starter for crawling websites, extracting PDFs, indexing into Supabase, and chatting from a Next.js UI.",
+  "knowledgeBaseLabel": "indexed website and PDF corpus",
+  "emptyStateTitle": "Ask the knowledge base",
+  "emptyStateDescription": "Query the pages and PDFs you crawled, indexed, and stored in Supabase.",
+  "chatInputPlaceholder": "Ask about the indexed website, documentation, or PDFs..."
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Example Knowledge Base",
+  "sources": [
+    {
+      "id": "example-home",
+      "title": "Example home page",
+      "url": "https://example.com/",
+      "category": "website",
+      "type": "html"
+    },
+    {
+      "id": "example-pdf",
+      "title": "Example product sheet",
+      "url": "https://example.com/example.pdf",
+      "category": "downloads",
+      "type": "pdf"
+    }
+  ]
+}
