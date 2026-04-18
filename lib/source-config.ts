@@ -17,6 +17,7 @@ type SourceConfigPayload = {
 };
 
 const SOURCE_CONFIG_PATH = path.join(process.cwd(), "config", "sources.json");
+const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), "data", "knowledge_base.json");
 const URL_REGEX = /https?:\/\/[^\s<>"]+/gi;
 
 function slugify(value: string) {
@@ -107,6 +108,32 @@ export async function loadSourcesConfig() {
     name: payload.name || "Web Harvest Chatbot Sources",
     sources: (payload.sources || []).map((entry) => normalizeEntry(entry, usedIds)),
   };
+}
+
+export async function loadIndexedSourcesFallback() {
+  try {
+    const raw = await fs.readFile(KNOWLEDGE_BASE_PATH, "utf-8");
+    const docs = JSON.parse(raw) as Array<{
+      id?: string;
+      title?: string;
+      detected_title?: string;
+      url?: string;
+      type?: string;
+      category?: string;
+    }>;
+
+    return docs
+      .filter((doc) => doc.url)
+      .map((doc) => ({
+        id: doc.id || inferId(doc.url || "", new Set<string>()),
+        title: doc.detected_title || doc.title || inferTitle(doc.url || ""),
+        url: doc.url || "",
+        type: doc.type === "pdf" ? "pdf" : inferType(doc.url || ""),
+        category: doc.category || inferCategory(inferType(doc.url || "")),
+      }));
+  } catch {
+    return [];
+  }
 }
 
 export async function saveSourcesConfig(name: string, sources: ManagedSource[]) {

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { LoginButton } from "@/components/login-button";
+import { LoginControls } from "@/components/login-controls";
 import { appConfig } from "@/lib/project-config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -23,7 +23,7 @@ export default async function LoginPage() {
           Start an anonymous session, add source URLs, build the knowledge base, and chat with the
           indexed content from one UI.
         </p>
-        <LoginButton />
+        <LoginControls />
       </section>
     </main>
   );

@@ -73,7 +73,7 @@ Copy `.env.example` to `.env` and set:
 
 ```env
 OPENAI_API_KEY=
-OPENAI_CHAT_MODEL=gpt-4o-mini
+OPENAI_CHAT_MODEL=
 OPENAI_EMBED_MODEL=text-embedding-3-small
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=

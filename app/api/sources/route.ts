@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { spawn } from "node:child_process";
 import { promises as fs } from "fs";
 
-import { addSourcesFromText, loadSourcesConfig, removeSourceById } from "@/lib/source-config";
+import { addSourcesFromText, loadIndexedSourcesFallback, loadSourcesConfig, removeSourceById } from "@/lib/source-config";
 import { BUILD_LOG_PATH, readBuildStatus, writeBuildStatus } from "@/lib/build-status";
 import { getAuthenticatedServerContext } from "@/lib/supabase/request-user";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -49,8 +50,9 @@ export async function GET() {
   }
 
   const payload = await loadSourcesConfig();
+  const sources = payload.sources.length > 0 ? payload.sources : await loadIndexedSourcesFallback();
   const buildStatus = await readBuildStatus();
-  return NextResponse.json({ ...payload, buildStatus });
+  return NextResponse.json({ ...payload, sources, buildStatus });
 }
 
 export async function POST(request: Request) {
@@ -128,6 +130,10 @@ export async function DELETE(request: Request) {
   if (!result.removed) {
     return NextResponse.json({ error: "Source not found" }, { status: 404 });
   }
+
+  // Delete all chunks for this source from the database
+  const supabase = createSupabaseAdminClient();
+  await supabase.from("chunks").delete().eq("doc_id", id);
 
   const buildStatus = await readBuildStatus();
   return NextResponse.json({

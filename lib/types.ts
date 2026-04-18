@@ -44,3 +44,17 @@ export type BuildStatus = {
   finishedAt: string | null;
   logPath: string | null;
 };
+
+export type EnvField = {
+  key: string;
+  label: string;
+  defaultValue?: string;
+  hint: string;
+  sensitive?: boolean;
+};
+
+export type EnvEntry = {
+  key: string;
+  value: string;
+  isCustom: boolean;
+};
