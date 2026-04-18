@@ -1,0 +1,26 @@
+{
+  "name": "Acme Knowledge Base",
+  "sources": [
+    {
+      "id": "acme-home",
+      "title": "Acme home page",
+      "url": "https://example.com/",
+      "category": "website",
+      "type": "html"
+    },
+    {
+      "id": "acme-docs-overview",
+      "title": "Acme docs overview",
+      "url": "https://example.com/docs",
+      "category": "documentation",
+      "type": "html"
+    },
+    {
+      "id": "acme-product-brochure",
+      "title": "Acme product brochure",
+      "url": "https://example.com/files/brochure.pdf",
+      "category": "downloads",
+      "type": "pdf"
+    }
+  ]
+}
