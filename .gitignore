@@ -36,3 +36,6 @@ data/build.log
 .DS_Store
 .idea/
 .vscode/
+
+
+REFACTOR_PLAN.md

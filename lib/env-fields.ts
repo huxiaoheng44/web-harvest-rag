@@ -37,15 +37,16 @@ export const FIXED_ENV_FIELDS: EnvFieldMeta[] = [
     sensitive: true,
   },
   {
-    key: "NEXT_PUBLIC_SUPABASE_URL",
-    label: "Public Supabase URL",
-    hint: "Usually the same value as SUPABASE_URL. It is used by the browser client.",
+    key: "NEXT_PUBLIC_API_BASE_URL",
+    label: "FastAPI Base URL",
+    defaultValue: "http://localhost:8000",
+    hint: "The frontend calls this FastAPI backend URL for chat, sources, and conversation APIs.",
   },
   {
-    key: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    label: "Supabase Anon Key",
-    hint: "In Supabase, open Project Settings -> API. Copy the anon public key used by the browser client. This is less sensitive than service_role, but production deployments should still be configured from the backend or deployment settings.",
-    sensitive: true,
+    key: "FRONTEND_ORIGIN",
+    label: "Frontend Origin",
+    defaultValue: "http://localhost:3000",
+    hint: "Allowed browser origin for the FastAPI CORS configuration.",
   },
 ];
 

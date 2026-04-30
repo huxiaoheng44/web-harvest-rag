@@ -9,6 +9,11 @@ import type { BuildStatus, Conversation, ManagedSource, Message, Source } from "
 
 type PendingMessage = Message & { pending?: boolean };
 
+type LocalIdentity = {
+  userId: string;
+  displayName: string;
+};
+
 type SourcesResponse = {
   name: string;
   sources: ManagedSource[];
@@ -23,7 +28,26 @@ const DEFAULT_BUILD_STATUS: BuildStatus = {
   logPath: null,
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const USER_ID_KEY = "web_harvest_user_id";
+const DISPLAY_NAME_KEY = "web_harvest_display_name";
+
+function apiUrl(path: string) {
+  return `${API_BASE_URL}${path}`;
+}
+
+async function parseJsonResponse(response: Response) {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || payload.detail || "Request failed");
+  }
+  return payload;
+}
+
 export function ChatApp() {
+  const [identity, setIdentity] = useState<LocalIdentity | null>(null);
+  const [displayNameInput, setDisplayNameInput] = useState("");
+  const [sessionBusy, setSessionBusy] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<PendingMessage[]>([]);
@@ -45,16 +69,26 @@ export function ChatApp() {
   const activeConversation = conversations.find((item) => item.id === activeConversationId) || null;
 
   useEffect(() => {
+    const userId = window.localStorage.getItem(USER_ID_KEY);
+    const displayName = window.localStorage.getItem(DISPLAY_NAME_KEY);
+    if (userId && displayName) {
+      setIdentity({ userId, displayName });
+      return;
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   async function fetchConversations() {
-    const response = await fetch("/api/conversations", { cache: "no-store" });
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload.error || "Failed to load conversations");
+    if (!identity) {
+      return;
     }
 
+    const response = await fetch(apiUrl(`/conversations?user_id=${encodeURIComponent(identity.userId)}`), { cache: "no-store" });
+    const payload = await parseJsonResponse(response);
     const list = payload.conversations as Conversation[];
     setConversations(list);
     if (!activeConversationId && list[0]) {
@@ -63,27 +97,28 @@ export function ChatApp() {
   }
 
   async function fetchMessages(conversationId: string) {
-    const response = await fetch(`/api/conversations/${conversationId}/messages`, { cache: "no-store" });
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload.error || "Failed to load messages");
+    if (!identity) {
+      return;
     }
 
+    const response = await fetch(apiUrl(`/conversations/${conversationId}/messages?user_id=${encodeURIComponent(identity.userId)}`), { cache: "no-store" });
+    const payload = await parseJsonResponse(response);
     setMessages(payload.messages as PendingMessage[]);
   }
 
   async function fetchSources() {
-    const response = await fetch("/api/sources", { cache: "no-store" });
-    const payload = (await response.json()) as SourcesResponse & { error?: string };
-    if (!response.ok) {
-      throw new Error(payload.error || "Failed to load sources");
-    }
+    const response = await fetch(apiUrl("/sources"), { cache: "no-store" });
+    const payload = (await parseJsonResponse(response)) as SourcesResponse & { error?: string };
 
     setSources(payload.sources);
     setBuildStatus(payload.buildStatus || DEFAULT_BUILD_STATUS);
   }
 
   useEffect(() => {
+    if (!identity) {
+      return;
+    }
+
     let mounted = true;
 
     (async () => {
@@ -103,7 +138,7 @@ export function ChatApp() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [identity]);
 
   useEffect(() => {
     void fetch("/api/env", { cache: "no-store" })
@@ -149,15 +184,16 @@ export function ChatApp() {
   }, [activeConversationId]);
 
   async function createConversation() {
-    const response = await fetch("/api/conversations", {
+    if (!identity) {
+      return;
+    }
+
+    const response = await fetch(apiUrl("/conversations"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "New chat" }),
+      body: JSON.stringify({ user_id: identity.userId, title: "New chat" }),
     });
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload.error || "Failed to create conversation");
-    }
+    const payload = await parseJsonResponse(response);
 
     const conversation = payload.conversation as Conversation;
     setConversations((current) => [conversation, ...current]);
@@ -166,11 +202,12 @@ export function ChatApp() {
   }
 
   async function deleteConversation(conversationId: string) {
-    const response = await fetch(`/api/conversations/${conversationId}`, { method: "DELETE" });
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload.error || "Failed to delete conversation");
+    if (!identity) {
+      return;
     }
+
+    const response = await fetch(apiUrl(`/conversations/${conversationId}?user_id=${encodeURIComponent(identity.userId)}`), { method: "DELETE" });
+    await parseJsonResponse(response);
 
     setConversations((current) => {
       const remaining = current.filter((item) => item.id !== conversationId);
@@ -192,15 +229,12 @@ export function ChatApp() {
     setSourceMessage(null);
 
     try {
-      const response = await fetch("/api/sources", {
+      const response = await fetch(apiUrl("/sources"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: sourceText, runIngestion }),
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Failed to save sources");
-      }
+      const payload = await parseJsonResponse(response);
 
       setSourceMessage(payload.message || "Sources updated");
       setBuildStatus(payload.buildStatus || DEFAULT_BUILD_STATUS);
@@ -222,15 +256,12 @@ export function ChatApp() {
     setSourceMessage(null);
 
     try {
-      const response = await fetch("/api/sources", {
+      const response = await fetch(apiUrl("/sources"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: sourceId }),
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Failed to remove source");
-      }
+      const payload = await parseJsonResponse(response);
 
       setSourceMessage(payload.message || "Source removed");
       setBuildStatus(payload.buildStatus || DEFAULT_BUILD_STATUS);
@@ -244,7 +275,7 @@ export function ChatApp() {
 
   async function sendMessage() {
     const question = input.trim();
-    if (!question || sending) {
+    if (!identity || !question || sending) {
       return;
     }
 
@@ -263,15 +294,16 @@ export function ChatApp() {
     setMessages((current) => [...current, optimistic]);
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(apiUrl("/chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: activeConversationId, message: question }),
+        body: JSON.stringify({
+          user_id: identity.userId,
+          conversation_id: activeConversationId,
+          message: question,
+        }),
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Failed to send message");
-      }
+      const payload = await parseJsonResponse(response);
 
       setMessages((current) => {
         const withoutOptimistic = current.filter((message) => message.id !== optimistic.id);
@@ -292,8 +324,75 @@ export function ChatApp() {
     }
   }
 
+  async function startSession() {
+    const displayName = displayNameInput.trim();
+    if (!displayName) {
+      setError("Enter a name to start.");
+      return;
+    }
+
+    setSessionBusy(true);
+    setError(null);
+
+    try {
+      const existingUserId = window.localStorage.getItem(USER_ID_KEY);
+      const response = await fetch(apiUrl("/users/session"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: displayName,
+          client_user_id: existingUserId,
+        }),
+      });
+      const payload = await parseJsonResponse(response);
+      const nextIdentity = {
+        userId: payload.user_id as string,
+        displayName: payload.display_name as string,
+      };
+      window.localStorage.setItem(USER_ID_KEY, nextIdentity.userId);
+      window.localStorage.setItem(DISPLAY_NAME_KEY, nextIdentity.displayName);
+      setIdentity(nextIdentity);
+      setLoading(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start session");
+    } finally {
+      setSessionBusy(false);
+    }
+  }
+
   if (loading) {
     return <main className="loading-state">Loading conversations...</main>;
+  }
+
+  if (!identity) {
+    return (
+      <main className="login-shell">
+        <section className="login-panel">
+          <p className="eyebrow">{appConfig.appName}</p>
+          <h1>Start your workspace</h1>
+          <p className="login-copy">
+            Enter a display name for this browser. The app will keep a local ID to separate your chat history without using Supabase Auth.
+          </p>
+          {error ? <p className="error-banner">{error}</p> : null}
+          <div className="login-actions">
+            <input
+              className="modal-input"
+              value={displayNameInput}
+              onChange={(event) => setDisplayNameInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  void startSession();
+                }
+              }}
+              placeholder="Your name"
+            />
+            <button className="primary-button" onClick={() => void startSession()} disabled={sessionBusy || !displayNameInput.trim()}>
+              {sessionBusy ? "Starting..." : "Continue"}
+            </button>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -394,7 +493,7 @@ export function ChatApp() {
           <div className="sidebar-footer">
             <div className="avatar">{appConfig.brandMark}</div>
             <div>
-              <strong>Anonymous session</strong>
+              <strong>{identity.displayName}</strong>
               <p>{appConfig.knowledgeBaseLabel}</p>
             </div>
           </div>
