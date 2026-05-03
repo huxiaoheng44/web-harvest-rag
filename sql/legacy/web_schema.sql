@@ -1,3 +1,6 @@
+-- Legacy Supabase Auth schema.
+-- For the current FastAPI backend, use sql/schema.sql instead.
+--
 -- Run this in Supabase SQL Editor after sql/setup_schema.sql.
 
 create extension if not exists vector;

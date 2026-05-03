@@ -20,8 +20,8 @@ Copy `.env.example` to `.env` and set:
 OPENAI_API_KEY=
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+FRONTEND_ORIGIN=http://localhost:3000
 ```
 
 Optional tuning:
@@ -37,10 +37,9 @@ CHUNK_OVERLAP_CHARS=150
 
 Run these scripts in Supabase SQL Editor:
 
-- `sql/setup_schema.sql`
-- `sql/web_schema.sql`
+- `sql/schema.sql`
 
-Enable anonymous auth in Supabase so the chat UI can create browser-scoped sessions.
+Supabase Auth is not required for the current FastAPI flow. The browser stores a local UUID and display name.
 
 ## 4. Ingest content
 
@@ -48,6 +47,7 @@ Install Python packages:
 
 ```bash
 pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
 Run the full pipeline:
@@ -64,7 +64,14 @@ python build_index.py --reset
 python pipeline.py --test --reset-index
 ```
 
-## 5. Run the web app
+## 5. Run the FastAPI backend
+
+```bash
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## 6. Run the web app
 
 Install Node packages and start the app:
 
@@ -73,4 +80,4 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` and start an anonymous session.
+Open `http://localhost:3000` and enter a display name to start a local weak-identity session.

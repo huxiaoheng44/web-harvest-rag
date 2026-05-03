@@ -23,7 +23,7 @@ The frontend no longer needs `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE
 Run this SQL in Supabase before using the FastAPI weak identity flow:
 
 ```text
-sql/fastapi_weak_identity.sql
+sql/schema.sql
 ```
 
 It removes the dependency on `auth.users` for conversations and adds a small `app_users` table for browser-local identities.

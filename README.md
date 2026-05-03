@@ -2,7 +2,7 @@
 
 `Web Harvest Chatbot` is a config-driven starter for building a retrieval-augmented chatbot from websites and PDFs.
 
-Paste a list of URLs into the web UI, click **Save and build**, and the app automatically scrapes, chunks, embeds, and indexes the content into Supabase pgvector — no command line required.
+The app now uses a Next.js/React frontend and a FastAPI backend. Paste a list of URLs into the web UI, click **Save and build**, and the backend scrapes, chunks, embeds, and indexes the content into Supabase pgvector.
 
 The full workflow:
 
@@ -23,7 +23,8 @@ The full workflow:
 - Vector indexing in `build_index.py`
 - One-command ingestion runner in `pipeline.py`
 - Supabase SQL for vector search and chat persistence
-- Next.js frontend with anonymous Supabase auth
+- FastAPI backend for RAG, conversations, sources, and weak local identity
+- Next.js frontend with a browser-local display name and UUID identity
 - Shared branding config in `config/project.json`
 
 ## UI example
@@ -59,6 +60,7 @@ config/sources.json
   -> data/knowledge_base.json
   -> build_index.py
   -> Supabase pgvector
+  -> FastAPI RAG API
   -> Next.js chat UI
 ```
 
@@ -68,6 +70,7 @@ config/sources.json
 
 ```bash
 pip install -r requirements.txt
+pip install -r backend/requirements.txt
 npm install
 ```
 
@@ -85,12 +88,12 @@ Copy `.env.example` to `.env` and fill in the values before starting the app. Th
 
 ```env
 OPENAI_API_KEY=
-OPENAI_CHAT_MODEL=
+OPENAI_CHAT_MODEL=gpt-4o-mini
 OPENAI_EMBED_MODEL=text-embedding-3-small
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+FRONTEND_ORIGIN=http://localhost:3000
 ```
 
 Optional chunk tuning:
@@ -105,21 +108,29 @@ CHUNK_OVERLAP_CHARS=150
 Run these scripts in Supabase SQL Editor:
 
 ```text
-sql/setup_schema.sql
-sql/web_schema.sql
+sql/schema.sql
 ```
 
-Also enable anonymous auth in Supabase.
+This creates the vector table, `match_chunks()` RPC, local weak identity table, conversations, and messages. Supabase Auth is not required for the current FastAPI flow.
 
-### 4. Start the web app
+### 4. Start the backend
+
+```bash
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+FastAPI docs are available at `http://localhost:8000/docs`.
+
+### 5. Start the web app
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000` and start an anonymous session.
+Open `http://localhost:3000`, enter a display name, and start chatting. The frontend stores a browser-local UUID to separate chat history without Supabase Auth.
 
-### 5. Add sources and build
+### 6. Add sources and build
 
 1. Click **Add sources** in the sidebar
 2. Paste any text containing URLs (plain list, email, notes — the app extracts all links)
@@ -161,8 +172,9 @@ See `config/sources.example.json` for reference.
 
 - `data/pages/` and `data/knowledge_base.json` are generated artifacts and ignored by git.
 - `data/build-status.json` and `data/build.log` are local runtime artifacts and ignored by git.
-- The vector search uses `match_chunks()` from `sql/web_schema.sql`.
+- The vector search uses `match_chunks()` from `sql/schema.sql`.
 - The app stores chat history in Supabase conversations and messages tables.
+- The current local identity flow is intentionally weak and intended for demos/development, not production authentication.
 - The current scraper is intentionally simple and easy to adapt, not a full distributed crawler.
 
 ## License
