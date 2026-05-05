@@ -130,6 +130,24 @@ npm run dev
 
 Open `http://localhost:3000`, enter a display name, and start chatting. The frontend stores a browser-local UUID to separate chat history without Supabase Auth.
 
+### Docker Compose
+
+After `.env` is configured and `sql/schema.sql` has been run in Supabase, start the app with:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+```text
+Frontend: http://localhost:3000
+Backend:  http://localhost:8000
+API docs: http://localhost:8000/docs
+```
+
+The Compose setup uses your external Supabase project. It does not start a local database.
+
 ### 6. Add sources and build
 
 1. Click **Add sources** in the sidebar

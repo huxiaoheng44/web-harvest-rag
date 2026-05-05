@@ -50,3 +50,13 @@ Useful URLs:
 FastAPI docs: http://localhost:8000/docs
 Frontend:     http://localhost:3000
 ```
+
+## Docker
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+The backend image includes the ingestion scripts and mounts `config/` and `data/` so source edits and build artifacts persist on the host.
