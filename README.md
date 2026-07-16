@@ -50,6 +50,7 @@ The full workflow:
 - `app/`, `components/`, `lib/`: web app and API routes
 - `docs/setup/SETUP.md`: detailed setup instructions
 - `docs/architecture.md`: high-level system design
+- `retrieval_lab/`: standalone retrieval experimentation harness (chunking strategies, BM25, hybrid fusion, recall@k eval) — see `retrieval_lab/README.md`
 
 ## How the pipeline works
 
@@ -185,6 +186,25 @@ See `config/sources.example.json` for reference.
 - Customer support assistant from docs + downloadable PDFs
 - Research assistant for niche websites with mixed HTML/PDF content
 - Lightweight vertical RAG prototype before building a larger ingestion stack
+
+## Retrieval experimentation (`retrieval_lab/`)
+
+A standalone research module for comparing retrieval methods — it doesn't
+touch the production Next.js frontend, FastAPI backend, or Supabase
+pgvector path above. It builds local FAISS + BM25 indexes over the scraped
+corpus (or a public benchmark like NFCorpus), evaluates recall@k for
+vector-only, BM25-only, and hybrid fusion, and records the findings.
+
+```bash
+python -m retrieval_lab.build_experiment_index --strategy fixed --chunk-size 500 --overlap 50 --name fixed-500
+python -m retrieval_lab.eval.run_eval --index fixed-500 --k 1 3 5 --alpha 0.5
+```
+
+See [`retrieval_lab/README.md`](retrieval_lab/README.md) for the full
+harness and [`retrieval_lab/RESULTS.md`](retrieval_lab/RESULTS.md) for the
+actual experiment results (chunking strategy comparison, why the first
+hybrid fusion implementation underperformed and how it was fixed, RRF vs.
+tuned linear fusion, etc.).
 
 ## Notes
 

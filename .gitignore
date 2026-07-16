@@ -32,6 +32,10 @@ data/knowledge_base.json
 data/build-status.json
 data/build.log
 
+# retrieval_lab experiment artifacts (indexes, embedding cache, eval results)
+retrieval_lab/data/
+retrieval_lab/backups/
+
 # OS / editor files
 .DS_Store
 .idea/

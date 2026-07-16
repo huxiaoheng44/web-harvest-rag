@@ -1,0 +1,182 @@
+[
+  {
+    "id": "q01",
+    "query": "What digital tools has MULTIVAC built to help customers enter Industry 4.0?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["digital-solutions"]
+  },
+  {
+    "id": "q02",
+    "query": "myMULTIVAC Customer Portal",
+    "query_type": "keyword",
+    "expected_doc_ids": ["digital-solutions"]
+  },
+  {
+    "id": "q03",
+    "query": "How can a company make profitable use of the machine data it collects from packaging lines?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["digital-solutions"]
+  },
+  {
+    "id": "q04",
+    "query": "Smart Packaging digitalization since 2015",
+    "query_type": "keyword",
+    "expected_doc_ids": ["digital-solutions"]
+  },
+  {
+    "id": "q05",
+    "query": "Which MULTIVAC product increases machine availability and lets you monitor equipment remotely from anywhere in the world?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["smart-services"]
+  },
+  {
+    "id": "q06",
+    "query": "MULTIVAC Smart Services retrofitting existing machines",
+    "query_type": "keyword",
+    "expected_doc_ids": ["smart-services"]
+  },
+  {
+    "id": "q07",
+    "query": "Does using Smart Services require a large upfront investment?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["smart-services"]
+  },
+  {
+    "id": "q08",
+    "query": "Smart Services benefits for machine operator and managing director",
+    "query_type": "keyword",
+    "expected_doc_ids": ["smart-services"]
+  },
+  {
+    "id": "q09",
+    "query": "What is MULTIVAC Line Control and how does it let operators run a whole production line from one terminal?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["line-control"]
+  },
+  {
+    "id": "q10",
+    "query": "HMI Switch control terminal function",
+    "query_type": "keyword",
+    "expected_doc_ids": ["line-control"]
+  },
+  {
+    "id": "q11",
+    "query": "MLC batch handling and item management",
+    "query_type": "keyword",
+    "expected_doc_ids": ["line-control"]
+  },
+  {
+    "id": "q12",
+    "query": "How does centralizing line operation improve traceability of packs and products?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["line-control"]
+  },
+  {
+    "id": "q13",
+    "query": "What does 'Production 4.0' mean for a packaging line and how do you measure, analyze, and act on production data?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["production-4-0"]
+  },
+  {
+    "id": "q14",
+    "query": "Measure Analyze Assist key performance indicators",
+    "query_type": "keyword",
+    "expected_doc_ids": ["production-4-0"]
+  },
+  {
+    "id": "q15",
+    "query": "live key performance indicators across machines locations shifts",
+    "query_type": "keyword",
+    "expected_doc_ids": ["production-4-0"]
+  },
+  {
+    "id": "q16",
+    "query": "What is the Digital Product Passport and what standard does it use to link physical products to digital information?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["digital-product-passport"]
+  },
+  {
+    "id": "q17",
+    "query": "GS1 Digital Link QR code",
+    "query_type": "keyword",
+    "expected_doc_ids": ["digital-product-passport"]
+  },
+  {
+    "id": "q18",
+    "query": "How does a single QR code benefit manufacturers, retailers, consumers, and recyclers differently?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["digital-product-passport"]
+  },
+  {
+    "id": "q19",
+    "query": "recycling instructions preparation tips QR code packaging",
+    "query_type": "keyword",
+    "expected_doc_ids": ["digital-product-passport"]
+  },
+  {
+    "id": "q20",
+    "query": "What is the MULTIVAC PEAQ Promise and what does it promise customers?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["pdf-peaq-brochure"]
+  },
+  {
+    "id": "q21",
+    "query": "PEAQ Productivity Efficiency Availability Quality",
+    "query_type": "keyword",
+    "expected_doc_ids": ["pdf-peaq-brochure"]
+  },
+  {
+    "id": "q22",
+    "query": "Why do customers keep coming back to MULTIVAC despite investment cost being a factor?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["pdf-peaq-brochure"]
+  },
+  {
+    "id": "q23",
+    "query": "minimize lifecycle costs maximize productivity summit",
+    "query_type": "keyword",
+    "expected_doc_ids": ["pdf-peaq-brochure"]
+  },
+  {
+    "id": "q24",
+    "query": "Which MULTIVAC solution centralizes control of an entire packaging line rather than just monitoring individual machines?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["line-control"]
+  },
+  {
+    "id": "q25",
+    "query": "How do MULTIVAC's digital offerings turn raw IoT machine data into actionable insight for a factory manager?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["digital-solutions", "production-4-0"]
+  },
+  {
+    "id": "q26",
+    "query": "networked equipment weak points potential for improvement",
+    "query_type": "keyword",
+    "expected_doc_ids": ["production-4-0"]
+  },
+  {
+    "id": "q27",
+    "query": "What role does transparency and real-time data play in increasing packaging line effectiveness?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["smart-services", "production-4-0"]
+  },
+  {
+    "id": "q28",
+    "query": "unique code per package batch traceability food industry",
+    "query_type": "keyword",
+    "expected_doc_ids": ["digital-product-passport"]
+  },
+  {
+    "id": "q29",
+    "query": "standardised reproducible processes starting stopping standby running line empty",
+    "query_type": "keyword",
+    "expected_doc_ids": ["line-control"]
+  },
+  {
+    "id": "q30",
+    "query": "How does MULTIVAC frame long-term productivity versus upfront investment cost when customers choose equipment?",
+    "query_type": "semantic",
+    "expected_doc_ids": ["pdf-peaq-brochure"]
+  }
+]

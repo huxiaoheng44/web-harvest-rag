@@ -6,3 +6,10 @@ pdfplumber
 python-dotenv
 requests
 supabase
+
+# retrieval_lab experimentation harness
+faiss-cpu
+rank_bm25
+tiktoken
+numpy
+datasets
