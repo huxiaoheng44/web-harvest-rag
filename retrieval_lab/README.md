@@ -49,11 +49,13 @@ retrieval_lab/
 
 ## Running it
 
-Install the extra dependencies (already in the repo's `requirements.txt`:
-`faiss-cpu`, `rank_bm25`, `tiktoken`, `numpy`, `datasets`):
+Install the core scraping deps plus this module's own extra dependencies
+(`faiss-cpu`, `rank_bm25`, `tiktoken`, `numpy`, `datasets` — kept in a
+separate `retrieval_lab/requirements.txt` so the production backend image
+doesn't have to install them too):
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt -r retrieval_lab/requirements.txt
 ```
 
 ### On the MULTIVAC corpus (uses the already-scraped `data/knowledge_base.json`)

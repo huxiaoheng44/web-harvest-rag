@@ -1,4 +1,7 @@
-import projectConfig from "@/config/project.json";
+// config/ is shared with scraper.py and the FastAPI backend, so it stays
+// at the repo root instead of moving into frontend/ with everything else -
+// relative import instead of the @/ alias.
+import projectConfig from "../../config/project.json";
 
 type ProjectConfig = {
   appName: string;

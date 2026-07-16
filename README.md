@@ -45,9 +45,9 @@ The full workflow:
 - `scraper.py`: crawls pages and PDFs into `data/`
 - `build_index.py`: chunks content and writes embeddings to Supabase
 - `pipeline.py`: runs scrape + index in sequence
-- `scripts/run-pipeline-background.mjs`: runs rebuilds in the background
 - `sql/`: database schema and RPC definitions
-- `app/`, `components/`, `lib/`: web app and API routes
+- `backend/`: FastAPI service for RAG, conversations, sources, and local identity
+- `frontend/`: Next.js chat UI (`app/`, `components/`, `lib/`)
 - `docs/setup/SETUP.md`: detailed setup instructions
 - `docs/architecture.md`: high-level system design
 - `retrieval_lab/`: standalone retrieval experimentation harness (chunking strategies, BM25, hybrid fusion, recall@k eval) — see `retrieval_lab/README.md`
@@ -72,7 +72,7 @@ config/sources.json
 ```bash
 pip install -r requirements.txt
 pip install -r backend/requirements.txt
-npm install
+cd frontend && npm install && cd ..
 ```
 
 ### 2. Configure environment variables
@@ -126,6 +126,7 @@ FastAPI docs are available at `http://localhost:8000/docs`.
 ### 5. Start the web app
 
 ```bash
+cd frontend
 npm run dev
 ```
 

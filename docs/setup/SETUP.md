@@ -76,6 +76,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Install Node packages and start the app:
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```

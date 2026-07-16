@@ -41,6 +41,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Then run the frontend separately:
 
 ```bash
+cd frontend
 npm run dev
 ```
 

@@ -9,7 +9,9 @@ export type EnvEntry = {
   isCustom: boolean;
 };
 
-const ENV_PATH = path.join(process.cwd(), ".env");
+// .env lives at the repo root (shared with scraper.py/backend), one level
+// above process.cwd() here since Next.js sets cwd to this frontend/ dir.
+const ENV_PATH = path.join(process.cwd(), "..", ".env");
 
 function parseEnv(raw: string) {
   const entries = new Map<string, string>();
