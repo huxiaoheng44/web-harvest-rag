@@ -11,6 +11,9 @@ build/
 .env.local
 .env.*.local
 
+# Per-deployment Docker Compose overrides (ports/domain specific to one host)
+docker-compose.override.yml
+
 # Logs
 *.log
 npm-debug.log*
