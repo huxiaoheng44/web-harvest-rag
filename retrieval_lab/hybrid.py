@@ -77,3 +77,26 @@ def rrf_fusion(
     }
     ranked = sorted(combined, key=lambda cid: combined[cid], reverse=True)[:k]
     return [(chunk_by_id[cid], combined[cid]) for cid in ranked]
+
+
+def rrf_merge_many(
+    ranked_lists: list[list[tuple[dict, float]]],
+    k: int,
+    rrf_k: int = 60,
+) -> list[tuple[dict, float]]:
+    """Reciprocal Rank Fusion across an arbitrary number of ranked lists.
+
+    Generalizes rrf_fusion's fixed two-list case - used to merge per-query-
+    variant hybrid retrieval results in the query-rewriting eval, where the
+    number of variants is a runtime parameter, not always two.
+    """
+    chunk_by_id: dict[str, dict] = {}
+    scores: dict[str, float] = {}
+
+    for ranked_list in ranked_lists:
+        for rank, (chunk, _) in enumerate(ranked_list, start=1):
+            chunk_by_id.setdefault(chunk["id"], chunk)
+            scores[chunk["id"]] = scores.get(chunk["id"], 0.0) + 1 / (rrf_k + rank)
+
+    ranked_ids = sorted(scores, key=lambda cid: scores[cid], reverse=True)[:k]
+    return [(chunk_by_id[cid], scores[cid]) for cid in ranked_ids]

@@ -11,10 +11,17 @@ which collapses to a plain hit/miss rate when a query has exactly one
 expected doc (the MULTIVAC case) and behaves correctly for queries with many
 expected docs (the NFCorpus case).
 
+Two optional extra columns:
+    --rerank            cross-encoder reranks the hybrid candidate pool
+    --query-rewrite N   LLM-paraphrases each query into N variants, retrieves
+                         hybrid for each, merges via RRF ("multiquery" column)
+
 Usage:
     python -m retrieval_lab.eval.run_eval --index fixed-500 --k 3 5 --alpha 0.5
     python -m retrieval_lab.eval.run_eval --index nfcorpus-fixed-500 \
         --queries retrieval_lab/data/nfcorpus_source/eval_queries.json --k 5 10 20
+    python -m retrieval_lab.eval.run_eval --index structural-500 --k 1 3 5 --rerank
+    python -m retrieval_lab.eval.run_eval --index structural-500 --k 1 3 5 --query-rewrite 2
 """
 
 from __future__ import annotations
@@ -25,7 +32,7 @@ from pathlib import Path
 
 from retrieval_lab.bm25_index import BM25Store
 from retrieval_lab.embeddings import embed_texts
-from retrieval_lab.hybrid import linear_fusion, rrf_fusion
+from retrieval_lab.hybrid import linear_fusion, rrf_fusion, rrf_merge_many
 from retrieval_lab.vector_store import VectorStore
 
 BASE_DIR = Path(__file__).parent
@@ -57,6 +64,8 @@ def run(
     queries_path: Path,
     fusion: str = "linear",
     rrf_k: int = 60,
+    use_rerank: bool = False,
+    query_rewrite_n: int = 0,
 ) -> dict:
     index_dir = INDEXES_DIR / index_name
     if not index_dir.exists():
@@ -69,11 +78,27 @@ def run(
     max_k = max(k_values)
     pool_size = max(CANDIDATE_POOL_SIZE, max_k)
 
+    methods = ["vector", "bm25", "hybrid"]
+    if use_rerank:
+        methods.append("rerank")
+    if query_rewrite_n:
+        methods.append("multiquery")
+
     print(f"Embedding {len(queries)} queries...")
     query_embeddings = embed_texts([q["query"] for q in queries])
 
+    if use_rerank:
+        from retrieval_lab.rerank import rerank as cross_encoder_rerank
+
+        print("Cross-encoder reranking enabled (loads the model lazily on first use).")
+
+    if query_rewrite_n:
+        from retrieval_lab.query_rewrite import rewrite_query
+
+        print(f"Query rewriting enabled: {query_rewrite_n} variant(s) per query.")
+
     per_query_results = []
-    method_totals = {"vector": {k: 0.0 for k in k_values}, "bm25": {k: 0.0 for k in k_values}, "hybrid": {k: 0.0 for k in k_values}}
+    method_totals = {method: {k: 0.0 for k in k_values} for method in methods}
 
     for query_record, query_embedding in zip(queries, query_embeddings):
         query = query_record["query"]
@@ -87,20 +112,38 @@ def run(
         else:
             fused_hits = linear_fusion(vector_hits, bm25_hits, store, bm25, query, query_embedding, k=pool_size, alpha=alpha)
 
+        hits_by_method = {"vector": vector_hits, "bm25": bm25_hits, "hybrid": fused_hits}
+
+        if use_rerank:
+            hits_by_method["rerank"] = cross_encoder_rerank(query, fused_hits, k=pool_size)
+
+        if query_rewrite_n:
+            variants = rewrite_query(query, n=query_rewrite_n)
+            variant_embeddings = embed_texts(variants)
+            variant_fused_lists = []
+            for variant, variant_embedding in zip(variants, variant_embeddings):
+                v_hits = store.search(variant_embedding, k=pool_size)
+                b_hits = bm25.search(variant, k=pool_size)
+                if fusion == "rrf":
+                    variant_fused = rrf_fusion(v_hits, b_hits, k=pool_size, rrf_k=rrf_k)
+                else:
+                    variant_fused = linear_fusion(v_hits, b_hits, store, bm25, variant, variant_embedding, k=pool_size, alpha=alpha)
+                variant_fused_lists.append(variant_fused)
+            hits_by_method["multiquery"] = rrf_merge_many(variant_fused_lists, k=pool_size, rrf_k=rrf_k)
+
         query_result = {
             "id": query_record["id"],
             "query": query,
             "query_type": query_record.get("query_type", ""),
             "expected_doc_ids": expected,
-            "vector_top_doc_ids": [chunk["doc_id"] for chunk, _ in vector_hits[:max_k]],
-            "bm25_top_doc_ids": [chunk["doc_id"] for chunk, _ in bm25_hits[:max_k]],
-            "hybrid_top_doc_ids": [chunk["doc_id"] for chunk, _ in fused_hits[:max_k]],
             "recall": {},
         }
+        for method in methods:
+            query_result[f"{method}_top_doc_ids"] = [chunk["doc_id"] for chunk, _ in hits_by_method[method][:max_k]]
 
         for k in k_values:
-            for method, hits in (("vector", vector_hits), ("bm25", bm25_hits), ("hybrid", fused_hits)):
-                fraction = recall_fraction(hits, k, expected)
+            for method in methods:
+                fraction = recall_fraction(hits_by_method[method], k, expected)
                 query_result["recall"][f"{method}@{k}"] = fraction
                 method_totals[method][k] += fraction
 
@@ -115,6 +158,7 @@ def run(
         "fusion": fusion,
         "alpha": alpha,
         "rrf_k": rrf_k,
+        "methods": methods,
         "query_count": total,
         "recall": recall,
         "per_query": per_query_results,
@@ -125,10 +169,10 @@ def print_table(summary: dict, k_values: list[int]) -> None:
     fusion_desc = f"alpha={summary['alpha']}" if summary["fusion"] == "linear" else f"rrf_k={summary['rrf_k']}"
     print(f"\nIndex: {summary['index_name']}  (fusion={summary['fusion']}, {fusion_desc}, n={summary['query_count']} queries)")
     print(f"Queries file: {summary['queries_path']}")
-    header = "Method".ljust(10) + "".join(f"recall@{k}".rjust(12) for k in k_values)
+    header = "Method".ljust(12) + "".join(f"recall@{k}".rjust(12) for k in k_values)
     print(header)
-    for method in ("vector", "bm25", "hybrid"):
-        row = method.ljust(10) + "".join(f"{summary['recall'][method][k]:.1%}".rjust(12) for k in k_values)
+    for method in summary["methods"]:
+        row = method.ljust(12) + "".join(f"{summary['recall'][method][k]:.1%}".rjust(12) for k in k_values)
         print(row)
 
 
@@ -139,20 +183,28 @@ def write_results_md(summary: dict, k_values: list[int], path: Path) -> None:
     lines.append("")
     lines.append("| Method | " + " | ".join(f"recall@{k}" for k in k_values) + " |")
     lines.append("|---" * (len(k_values) + 1) + "|")
-    for method in ("vector", "bm25", "hybrid"):
+    for method in summary["methods"]:
         row = [f"{summary['recall'][method][k]:.1%}" for k in k_values]
         lines.append(f"| {method} | " + " | ".join(row) + " |")
 
     lines.append("")
     best_k = max(k_values)
-    vector_r = summary["recall"]["vector"][best_k]
-    hybrid_r = summary["recall"]["hybrid"][best_k]
-    delta = (hybrid_r - vector_r) * 100
-    direction = "improved" if delta >= 0 else "reduced"
-    lines.append(
-        f"Hybrid retrieval {direction} recall@{best_k} from {vector_r:.1%} (vector-only) "
-        f"to {hybrid_r:.1%} on a {summary['query_count']}-query evaluation set."
-    )
+    extra_methods = [m for m in summary["methods"] if m not in ("vector", "bm25", "hybrid")]
+
+    def comparison_line(label: str, method: str, baseline: str) -> str:
+        baseline_r = summary["recall"][baseline][best_k]
+        method_r = summary["recall"][method][best_k]
+        direction = "improved" if method_r >= baseline_r else "reduced"
+        return (
+            f"{label} {direction} recall@{best_k} from {baseline_r:.1%} ({baseline}) "
+            f"to {method_r:.1%} on a {summary['query_count']}-query evaluation set."
+        )
+
+    if extra_methods:
+        for method in extra_methods:
+            lines.append(comparison_line(method, method, "hybrid"))
+    else:
+        lines.append(comparison_line("Hybrid retrieval", "hybrid", "vector"))
 
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -166,10 +218,21 @@ def main():
     parser.add_argument("--rrf-k", type=int, default=60, help="RRF rank-damping constant")
     parser.add_argument("--queries", default=str(DEFAULT_QUERIES_PATH), help="Path to a {id, query, expected_doc_ids} JSON file")
     parser.add_argument("--tag", default="", help="Suffix appended to the saved results filename (e.g. to separate fusion runs)")
+    parser.add_argument("--rerank", action="store_true", help="Add a cross-encoder-reranked column on top of hybrid")
+    parser.add_argument("--query-rewrite", type=int, default=0, metavar="N", help="Add an N-variant LLM query-rewriting + RRF-merge column")
     args = parser.parse_args()
 
     k_values = sorted(args.k)
-    summary = run(args.index, k_values, args.alpha, Path(args.queries), fusion=args.fusion, rrf_k=args.rrf_k)
+    summary = run(
+        args.index,
+        k_values,
+        args.alpha,
+        Path(args.queries),
+        fusion=args.fusion,
+        rrf_k=args.rrf_k,
+        use_rerank=args.rerank,
+        query_rewrite_n=args.query_rewrite,
+    )
     print_table(summary, k_values)
 
     result_name = f"{args.index}{('_' + args.tag) if args.tag else ''}"

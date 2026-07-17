@@ -31,7 +31,22 @@ numbers. This file covers what's here and how to run it.
    - `rrf_fusion`: Reciprocal Rank Fusion, scale-invariant, no alpha needed
 6. **Evaluation** (`eval/run_eval.py`) — computes macro-averaged recall@k
    for vector-only / bm25-only / hybrid against a labeled query set, prints
-   a comparison table, and saves raw + markdown results.
+   a comparison table, and saves raw + markdown results. Two optional extra
+   columns:
+   - `--rerank` (`rerank.py`) — cross-encoder (`sentence-transformers`)
+     reranks the hybrid candidate pool
+   - `--query-rewrite N` (`query_rewrite.py`) — LLM-paraphrases each query
+     into N variants, retrieves hybrid for each, merges via
+     `hybrid.rrf_merge_many`
+7. **Chunk size sweep** (`chunk_size_sweep.py`) — orchestrates
+   `build_experiment_index.py` + `eval/run_eval.py` across several fixed
+   chunk sizes and tabulates the recall@k trend.
+8. **Error analysis** (`error_analysis.py`) — post-processes a saved
+   `eval/run_eval.py` result into failure buckets (vector-missed/BM25-hit,
+   BM25-missed/vector-hit, both-missed, partial-miss).
+9. **Answer-quality eval** (`answer_eval.py`) — generates an answer from the
+   retrieved chunks and has a second LLM call judge its faithfulness to
+   that context (1-5) — covers generation quality, not just retrieval.
 
 ## Directory layout
 
@@ -40,6 +55,11 @@ retrieval_lab/
   chunking.py, embeddings.py, vector_store.py, bm25_index.py, hybrid.py
   build_experiment_index.py    # CLI: chunk -> embed -> build FAISS + BM25 index
   build_nfcorpus_source.py     # CLI: download NFCorpus from Hugging Face, convert to our schema
+  rerank.py                    # cross-encoder reranking over a candidate pool
+  query_rewrite.py             # LLM query paraphrasing
+  chunk_size_sweep.py          # CLI: sweep fixed chunk sizes, tabulate recall@k trend
+  error_analysis.py            # CLI: bucket failures from a saved eval result
+  answer_eval.py               # CLI: generate + LLM-judge answer faithfulness
   eval/
     queries.json                # hand-labeled MULTIVAC eval queries (LLM-drafted, human-reviewed)
     run_eval.py                  # CLI: run the eval, print + save recall@k
@@ -50,9 +70,9 @@ retrieval_lab/
 ## Running it
 
 Install the core scraping deps plus this module's own extra dependencies
-(`faiss-cpu`, `rank_bm25`, `tiktoken`, `numpy`, `datasets` — kept in a
-separate `retrieval_lab/requirements.txt` so the production backend image
-doesn't have to install them too):
+(`faiss-cpu`, `rank_bm25`, `tiktoken`, `numpy`, `datasets`,
+`sentence-transformers` — kept in a separate `retrieval_lab/requirements.txt`
+so the production backend image doesn't have to install them too):
 
 ```bash
 pip install -r requirements.txt -r retrieval_lab/requirements.txt
@@ -89,6 +109,29 @@ python -m retrieval_lab.eval.run_eval --index fixed-500 --k 1 3 5 --alpha 0.3 --
 
 `--tag` appends a suffix to the saved results filename so runs with
 different settings don't overwrite each other.
+
+### Rerank, query rewriting, chunk size sweep, error analysis, answer quality
+
+```bash
+# Cross-encoder rerank on top of hybrid
+python -m retrieval_lab.eval.run_eval --index structural-500 --k 1 3 5 --rerank --tag rerank
+
+# Query rewriting (2 LLM-generated variants + original, RRF-merged)
+python -m retrieval_lab.eval.run_eval --index structural-500 --k 1 3 5 --query-rewrite 2 --tag qrewrite
+
+# Chunk size sweep
+python -m retrieval_lab.chunk_size_sweep --sizes 200 500 1000 --prefix multivac --k 1 3 5
+
+# Error analysis on an already-saved eval_results/<name>.json
+python -m retrieval_lab.error_analysis --results structural-500 --k 5
+
+# LLM-as-judge answer-quality eval
+python -m retrieval_lab.answer_eval --index structural-500 --k 5 --alpha 0.5
+```
+
+See `RESULTS.md` for what each of these actually found, including a judge-
+prompt calibration bug that turned up (and was fixed) while running the
+answer-quality eval.
 
 ## Adding your own corpus
 
