@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Bugs found and fixed</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  .bug-list { display: flex; flex-direction: column; gap: 18px; margin-top: 8px; }
+  .bug {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px 28px; display: flex; gap: 24px; align-items: center;
+  }
+  .bug .tag-sev {
+    flex: none; width: 150px; text-align: center; padding: 8px 0; border-radius: 10px;
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .sev-security { background: rgba(239,68,68,0.1); color: var(--danger); }
+  .sev-correctness { background: var(--accent-light); color: var(--accent-dark); }
+  .bug h3 { margin: 0 0 4px; font-size: 19px; }
+  .bug p { margin: 0; font-size: 15px; color: var(--muted); line-height: 1.45; }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <p class="eyebrow">Engineering judgment, not just implementation</p>
+    <h1 class="slide-title">Five real bugs, found by actually testing</h1>
+    <p class="slide-lede">Every one of these was caught by running the system end to end and looking hard at the output — not by code review alone.</p>
+
+    <div class="bug-list">
+      <div class="bug">
+        <div class="tag-sev sev-security">Security</div>
+        <div><h3>Unauthenticated secrets endpoint</h3><p>The in-app settings panel let anyone GET the real OpenAI/Supabase keys in plain JSON with zero auth. Disabled in production before the first public deploy.</p></div>
+      </div>
+      <div class="bug">
+        <div class="tag-sev sev-correctness">Correctness</div>
+        <div><h3>Zero-fill scoring bug in hybrid fusion</h3><p>Candidates outside one method's top-20 were scored 0 instead of their real value — unfairly penalizing chunks only one method liked. Fixed with exact re-scoring over the full candidate union.</p></div>
+      </div>
+      <div class="bug">
+        <div class="tag-sev sev-correctness">Reproducibility</div>
+        <div><h3>Non-deterministic recall@k</h3><p>The same query, index, and alpha produced three different recall@1 scores across three runs — a bare Python <code>set()</code>'s hash-seed-dependent iteration order was silently reshuffling score ties.</p></div>
+      </div>
+      <div class="bug">
+        <div class="tag-sev sev-correctness">Eval calibration</div>
+        <div><h3>LLM judge conflated two failure modes</h3><p>A correct "I can't confirm this" refusal was scored as harshly as a hallucination. Average score jumped 3.32 → 4.92 / 5 once the judge prompt separated retrieval failure from generation failure.</p></div>
+      </div>
+      <div class="bug">
+        <div class="tag-sev sev-correctness">Production</div>
+        <div><h3>Dependency drift broke the live chat</h3><p>An unpinned <code>supabase</code> client picked up a newer API where <code>.insert().select().single()</code> no longer exists — every <code>/chat</code> call 500'd. Found by smoke-testing the fresh deploy, not by CI.</p></div>
+      </div>
+    </div>
+
+    <div class="brand-mark"><span class="dot"></span>Web Harvest RAG</div>
+    <div class="page-number">04</div>
+  </div>
+</body>
+</html>

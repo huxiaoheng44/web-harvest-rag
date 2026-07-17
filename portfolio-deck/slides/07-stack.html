@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Stack</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  .slide { justify-content: center; }
+  .stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 12px 0 64px; }
+  .stack-item {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px 24px; font-size: 19px; font-weight: 700; color: var(--text);
+  }
+  .stack-item span { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 4px; }
+  .links { display: flex; gap: 56px; font-size: 24px; font-weight: 700; color: var(--accent-dark); }
+  .links .label { display: block; font-size: 15px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <p class="eyebrow">Stack</p>
+    <h1 class="slide-title">Everything that shipped</h1>
+
+    <div class="stack-grid">
+      <div class="stack-item">Next.js 15<span>Chat UI, App Router</span></div>
+      <div class="stack-item">FastAPI<span>RAG, sources, conversations</span></div>
+      <div class="stack-item">Supabase<span>pgvector, match_chunks RPC</span></div>
+      <div class="stack-item">OpenAI<span>gpt-4o-mini + text-embedding-3-small</span></div>
+      <div class="stack-item">FAISS<span>Local vector search (retrieval_lab)</span></div>
+      <div class="stack-item">rank_bm25<span>Keyword search (retrieval_lab)</span></div>
+      <div class="stack-item">sentence-transformers<span>Cross-encoder rerank</span></div>
+      <div class="stack-item">Docker + nginx<span>Production deployment</span></div>
+    </div>
+
+    <div class="links">
+      <div><span class="label">Live demo</span>webrag.huxiaoheng.com</div>
+      <div><span class="label">Source</span>github.com/huxiaoheng44/web-harvest-rag</div>
+    </div>
+
+    <div class="brand-mark"><span class="dot"></span>Web Harvest RAG</div>
+    <div class="page-number">07</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Results</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  .tables { display: flex; gap: 40px; margin-top: 8px; }
+  .table-col { flex: 1; }
+  .table-col h3 { font-size: 20px; margin: 0 0 6px; }
+  .table-col .sub { font-size: 15px; color: var(--muted); margin: 0 0 16px; }
+  .callout {
+    margin-top: 44px; padding: 30px 34px; border-radius: 20px; background: var(--bg-sidebar);
+    font-size: 21px; line-height: 1.65; color: var(--text);
+  }
+  .callout b { color: var(--accent-dark); }
+  .validation { margin-top: 20px; font-size: 17px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <p class="eyebrow">Findings</p>
+    <h1 class="slide-title">What actually won, and where</h1>
+
+    <div class="tables">
+      <div class="table-col">
+        <h3>MULTIVAC — structural-500</h3>
+        <p class="sub">recall@k, 30 hand-labeled queries</p>
+        <table class="recall-table">
+          <tr><th>Method</th><th>recall@1</th><th>recall@5</th></tr>
+          <tr><td>Vector only</td><td class="num">60.0%</td><td class="num">93.3%</td></tr>
+          <tr><td>BM25 only</td><td class="num">75.0%</td><td class="num">95.0%</td></tr>
+          <tr class="win"><td>Hybrid (linear)</td><td class="num">78.3%</td><td class="num">96.7%</td></tr>
+        </table>
+      </div>
+      <div class="table-col">
+        <h3>NFCorpus — fixed-500 (BEIR)</h3>
+        <p class="sub">recall@k, 323 official test queries, tuned α=0.8</p>
+        <table class="recall-table">
+          <tr><th>Method</th><th>recall@5</th><th>recall@100</th></tr>
+          <tr><td>Vector only</td><td class="num">13.9%</td><td class="num">35.4%</td></tr>
+          <tr><td>BM25 only</td><td class="num">11.6%</td><td class="num">23.0%</td></tr>
+          <tr class="win"><td>Hybrid (linear)</td><td class="num">14.4%</td><td class="num">36.0%</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>BM25 wins on MULTIVAC</b> — brand-heavy content ("MLC", "PEAQ", "GS1 Digital Link") rewards
+      exact keyword match. <b>Vector wins on NFCorpus</b> — technical medical abstracts vs. colloquial
+      queries create a vocabulary gap that only semantic search bridges. Hybrid beats the better of
+      the two on both corpora, but only once tuned per-corpus. Neither method is a safe default.
+    </div>
+    <p class="validation">Validation: this harness's BM25 recall@100 on NFCorpus (23.0%) lands within 2 points of BEIR's published official BM25 baseline (25.0%) — the low absolute numbers are a property of the dataset, not a bug in the implementation.</p>
+
+    <div class="brand-mark"><span class="dot"></span>Web Harvest RAG</div>
+    <div class="page-number">05</div>
+  </div>
+</body>
+</html>

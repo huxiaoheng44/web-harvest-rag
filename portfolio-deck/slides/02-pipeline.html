@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Pipeline</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  .pipeline { display: flex; align-items: stretch; gap: 0; margin-top: 20px; }
+  .step {
+    flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
+    padding: 36px 28px; display: flex; flex-direction: column; gap: 14px; position: relative;
+  }
+  .step + .step { margin-left: 28px; }
+  .step .num {
+    width: 44px; height: 44px; border-radius: 12px; background: var(--accent-light); color: var(--accent-dark);
+    display: grid; place-items: center; font-weight: 800; font-size: 20px;
+  }
+  .step h3 { margin: 0; font-size: 22px; color: var(--text); }
+  .step p { margin: 0; font-size: 16px; color: var(--muted); line-height: 1.55; }
+  .arrow { align-self: center; color: var(--border); font-size: 28px; margin: 0 6px; }
+  .row { display: flex; align-items: stretch; }
+  .note {
+    margin-top: 56px; padding: 28px 32px; border-radius: 20px; background: var(--bg-sidebar);
+    font-size: 20px; color: var(--text); line-height: 1.6;
+  }
+  .note b { color: var(--accent-dark); }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <p class="eyebrow">Architecture</p>
+    <h1 class="slide-title">Scrape → Chunk → Embed → Retrieve → Chat</h1>
+    <p class="slide-lede">Six stages, each independently swappable — the retrieval stage is where most of the engineering work in this project actually happened.</p>
+
+    <div class="row">
+      <div class="step"><div class="num">1</div><h3>Scrape</h3><p>config/sources.json → scraper.py pulls HTML pages and PDFs, extracts clean readable content.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">2</div><h3>Chunk</h3><p>Fixed-size token windows or structural (heading-aware) splitting — compared systematically, not assumed.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">3</div><h3>Embed</h3><p>OpenAI text-embedding-3-small, cached by content hash so re-runs don't re-pay the API.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">4</div><h3>Retrieve</h3><p>Vector (FAISS / Supabase pgvector) + BM25, fused — the part covered in depth on the next slides.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">5</div><h3>Generate</h3><p>FastAPI backend builds context from retrieved chunks, calls the chat model, stores the conversation.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">6</div><h3>Chat</h3><p>Next.js UI — add sources, watch the index build live, ask questions, see cited sources.</p></div>
+    </div>
+
+    <div class="note">
+      Production uses <b>Supabase pgvector</b> for retrieval. A separate, standalone module —
+      <b>retrieval_lab</b> — exists purely to answer "is this actually the best way to do stage 4?"
+      without touching the live app. That's the rest of this deck.
+    </div>
+
+    <div class="brand-mark"><span class="dot"></span>Web Harvest RAG</div>
+    <div class="page-number">02</div>
+  </div>
+</body>
+</html>

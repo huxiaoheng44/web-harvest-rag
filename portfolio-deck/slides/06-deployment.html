@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Deployment</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  .layout { display: flex; gap: 48px; align-items: flex-start; margin-top: 8px; }
+  .shot-wrap {
+    flex: none; width: 980px; border-radius: 18px; overflow: hidden; border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(25,145,230,0.12);
+  }
+  .shot-wrap img { display: block; width: 100%; }
+  .facts { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+  .fact { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; }
+  .fact .k { font-size: 14px; color: var(--accent-dark); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .fact .v { font-size: 18px; color: var(--text); line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <p class="eyebrow">Live</p>
+    <h1 class="slide-title">Deployed, not just demoed</h1>
+    <p class="slide-lede">webrag.huxiaoheng.com — a real conversation, retrieving from the production index.</p>
+
+    <div class="layout">
+      <div class="shot-wrap"><img src="../screenshots/chat-conversation.png" alt="Live chat conversation" /></div>
+      <div class="facts">
+        <div class="fact"><div class="k">Infrastructure</div><div class="v">Docker Compose — isolated FastAPI + Next.js containers, bound to localhost only, <code>restart: unless-stopped</code></div></div>
+        <div class="fact"><div class="k">Edge</div><div class="v">nginx reverse proxy + Let's Encrypt TLS, sharing the host with two other live projects</div></div>
+        <div class="fact"><div class="k">Data</div><div class="v">Production Supabase index rebuilt end to end: 81 → 340 chunks across all 24 source documents</div></div>
+        <div class="fact"><div class="k">Verified</div><div class="v">Real question in, real cited answer out — checked through the public HTTPS domain, not just localhost</div></div>
+      </div>
+    </div>
+
+    <div class="brand-mark"><span class="dot"></span>Web Harvest RAG</div>
+    <div class="page-number">06</div>
+  </div>
+</body>
+</html>

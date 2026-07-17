@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>retrieval_lab</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 12px; }
+  .item { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 26px 30px; display: flex; gap: 20px; align-items: flex-start; }
+  .item .n { width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--accent-light); color: var(--accent-dark); display: grid; place-items: center; font-weight: 800; font-size: 17px; }
+  .item h3 { margin: 0 0 6px; font-size: 20px; }
+  .item p { margin: 0; font-size: 15px; color: var(--muted); line-height: 1.5; }
+  .corpora { display: flex; gap: 24px; margin-top: 40px; }
+  .corpus-card { flex: 1; background: var(--bg-sidebar); border-radius: 18px; padding: 24px 28px; }
+  .corpus-card .label { font-size: 14px; color: var(--accent-dark); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .corpus-card .value { font-size: 18px; color: var(--text); line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <p class="eyebrow">Research module</p>
+    <h1 class="slide-title">retrieval_lab: a standalone experimentation harness</h1>
+    <p class="slide-lede">Ten questions about retrieval quality, each answered with real numbers instead of assumptions — kept fully separate from the production app.</p>
+
+    <div class="grid">
+      <div class="item"><div class="n">1</div><div><h3>Chunking strategies</h3><p>Fixed-size token windows vs. structural (heading-aware) splitting, compared head to head.</p></div></div>
+      <div class="item"><div class="n">2</div><div><h3>Vector vs. BM25 vs. Hybrid</h3><p>FAISS cosine search, rank_bm25 keyword search, and two fusion strategies (linear + RRF).</p></div></div>
+      <div class="item"><div class="n">3</div><div><h3>Cross-encoder rerank</h3><p>ms-marco-MiniLM reranking the hybrid candidate pool — tested, not assumed to help.</p></div></div>
+      <div class="item"><div class="n">4</div><div><h3>Chunk-size sweep</h3><p>200 / 500 / 1,000-token chunks, measuring the completeness-vs-noise trade-off directly.</p></div></div>
+      <div class="item"><div class="n">5</div><div><h3>LLM query rewriting</h3><p>Paraphrase each query into variants, retrieve for each, merge via reciprocal rank fusion.</p></div></div>
+      <div class="item"><div class="n">6</div><div><h3>Error-bucket analysis</h3><p>Every imperfect-recall query auto-sorted into a failure category, then read through by hand.</p></div></div>
+      <div class="item"><div class="n">7</div><div><h3>Alpha tuning</h3><p>Hybrid fusion weight swept on a held-out validation split, evaluated on a separate test split.</p></div></div>
+      <div class="item"><div class="n">8</div><div><h3>LLM-as-judge answer eval</h3><p>Not just "was the right chunk retrieved" — is the generated answer actually faithful to it?</p></div></div>
+    </div>
+
+    <div class="corpora">
+      <div class="corpus-card">
+        <div class="label">Corpus A — MULTIVAC</div>
+        <div class="value">24 scraped company pages/PDFs, 30 hand-labeled queries</div>
+      </div>
+      <div class="corpus-card">
+        <div class="label">Corpus B — NFCorpus</div>
+        <div class="value">Public BEIR benchmark: 3,633 docs, 323 official test queries</div>
+      </div>
+    </div>
+
+    <div class="brand-mark"><span class="dot"></span>Web Harvest RAG</div>
+    <div class="page-number">03</div>
+  </div>
+</body>
+</html>

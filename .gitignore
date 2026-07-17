@@ -28,6 +28,10 @@ __pycache__/
 
 # AI / local tooling
 .claude/
+.agents/
+
+# Disposable verification screenshots (regenerate on demand, not a deliverable)
+portfolio-deck/previews/
 
 # Generated crawl artifacts
 data/pages/

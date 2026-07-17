@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Web Harvest RAG — Cover</title>
+<link rel="stylesheet" href="deck.css" />
+<style>
+  /* Opaque colors only (not var(--accent-light), which is rgba() with alpha) -
+     Chromium's print-to-PDF pipeline shifts alpha-blended gradient stops
+     toward magenta; this is the same gradient's visual result, pre-composited
+     to solid colors so the exported PDF matches the on-screen preview. */
+  body { background: radial-gradient(circle at 30% 20%, #eaf4fd 0%, var(--bg-sidebar) 45%, var(--bg) 100%); }
+  .slide { justify-content: center; }
+  .cover-badge {
+    width: 96px; height: 96px; border-radius: 26px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    display: grid; place-items: center; color: white; font-size: 44px; font-weight: 800;
+    box-shadow: 0 20px 50px rgba(25,145,230,0.28);
+    margin-bottom: 44px;
+  }
+  h1.cover-title { font-size: 92px; margin: 0 0 24px; letter-spacing: -0.02em; }
+  p.cover-sub { font-size: 30px; color: var(--muted); max-width: 1200px; line-height: 1.6; margin: 0 0 56px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 64px; }
+  .meta-row { display: flex; gap: 56px; font-size: 22px; color: var(--text); font-weight: 600; }
+  .meta-row .label { color: var(--muted); font-weight: 500; display: block; font-size: 16px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <div class="cover-badge">W</div>
+    <h1 class="cover-title">Web Harvest RAG</h1>
+    <p class="cover-sub">
+      A config-driven RAG chatbot starter — scrape any site or PDF, chunk and embed it,
+      retrieve with a hybrid vector + keyword search, and chat over it. Built, benchmarked
+      against a public IR baseline, and deployed to production.
+    </p>
+    <div class="tag-row">
+      <span class="tag">Next.js 15</span>
+      <span class="tag">FastAPI</span>
+      <span class="tag">Supabase pgvector</span>
+      <span class="tag">FAISS</span>
+      <span class="tag">BM25</span>
+      <span class="tag">OpenAI</span>
+      <span class="tag">Docker + nginx</span>
+    </div>
+    <div class="meta-row">
+      <div><span class="label">Live demo</span>webrag.huxiaoheng.com</div>
+      <div><span class="label">Source</span>github.com/huxiaoheng44/web-harvest-rag</div>
+    </div>
+  </div>
+</body>
+</html>
