@@ -1,6 +1,10 @@
 from app.schemas.chat import Conversation, Message, Source
 from app.services.clients import get_supabase_client
 
+# insert(...).select(...) returns a plain query builder in the installed
+# postgrest-py version, not the select-builder that .single() lives on - so
+# unlike a top-level .select().single(), these take the row via data[0].
+
 
 def make_title(input_text: str | None) -> str:
     base = " ".join((input_text or "New chat").strip().split())
@@ -25,10 +29,9 @@ def create_conversation(user_id: str, title: str | None = None) -> Conversation:
         .from_("conversations")
         .insert({"user_id": user_id, "title": make_title(title)})
         .select("id, title, created_at, updated_at")
-        .single()
         .execute()
     )
-    return Conversation(**result.data)
+    return Conversation(**result.data[0])
 
 
 def delete_conversation(user_id: str, conversation_id: str) -> None:
@@ -85,10 +88,9 @@ def add_message(
         .from_("messages")
         .insert(payload)
         .select("id, role, content, created_at, sources")
-        .single()
         .execute()
     )
-    return Message(**result.data)
+    return Message(**result.data[0])
 
 
 def update_new_chat_title(user_id: str, conversation_id: str, question: str) -> None:
