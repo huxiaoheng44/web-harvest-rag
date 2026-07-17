@@ -64,6 +64,10 @@ export function ChatApp() {
   const [removingSourceId, setRemovingSourceId] = useState<string | null>(null);
   const [buildStatusExpanded, setBuildStatusExpanded] = useState(false);
   const [envModalOpen, setEnvModalOpen] = useState(false);
+  // The env settings panel reads/writes real secrets via /api/env, which is
+  // itself disabled in production - this just keeps the now-nonfunctional
+  // button/modal from being rendered at all in a public deployment.
+  const settingsEnabled = process.env.NODE_ENV !== "production";
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeConversation = conversations.find((item) => item.id === activeConversationId) || null;
@@ -402,12 +406,14 @@ export function ChatApp() {
           <div className="sidebar-brand">
             <div className="brand-icon">{appConfig.brandMark}</div>
             <span className="brand-name">{appConfig.appName}</span>
-            <button className="brand-settings-btn" onClick={() => setEnvModalOpen(true)} title="Environment settings">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-            </button>
+            {settingsEnabled ? (
+              <button className="brand-settings-btn" onClick={() => setEnvModalOpen(true)} title="Environment settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+            ) : null}
           </div>
 
           <button className="new-chat-btn" onClick={() => void createConversation()}>
@@ -601,12 +607,14 @@ export function ChatApp() {
         </div>
       ) : null}
 
-      <EnvSettingsModal
-        isOpen={envModalOpen}
-        title="Environment variables"
-        description="Update the local OpenAI and Supabase variables used by the app."
-        onClose={() => setEnvModalOpen(false)}
-      />
+      {settingsEnabled ? (
+        <EnvSettingsModal
+          isOpen={envModalOpen}
+          title="Environment variables"
+          description="Update the local OpenAI and Supabase variables used by the app."
+          onClose={() => setEnvModalOpen(false)}
+        />
+      ) : null}
     </>
   );
 }
